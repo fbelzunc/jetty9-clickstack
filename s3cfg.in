@@ -1,0 +1,5 @@
+[default]
+access_key = REPLACE-WITH-AWS-ACCESS-KEY
+secret_key = REPLACE-WITH-AWS-SECRET-KEY
+bucket_location = US
+use_https = True

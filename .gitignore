@@ -1,0 +1,12 @@
+.DS_Store
+.classpath
+.project
+.settings
+*.iml
+.idea
+/lib
+/jetty9-plugin.zip
+/pkg
+/s3cfg
+target
+/java
