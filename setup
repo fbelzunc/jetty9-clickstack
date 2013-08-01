@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+set -u
+
+. "$plugin_dir/functions"
+
+create_app_skel
+install_jetty
+install_java_agent
+install_jmxtrans_agent
+install_java_control_functions
+install_server_config
+install_app
+write_config
+write_java_opts
+write_control
+install_mysql_connector_jar
+install_commons_pool_jar
+install_commons_dbcp_jar
+install_commons_collection_jar
+
+
