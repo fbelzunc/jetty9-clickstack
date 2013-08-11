@@ -36,10 +36,12 @@ public class JettyConfigurationBuilderTest {
 
     File appDir = new File(System.getProperty("java.io.tmpdir"));
     private Document appXml;
+    private Document jettyXml;
 
     @Before
     public void before() throws Exception {
         appXml = XmlUtils.loadXmlDocumentFromStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("app.xml"));
+        jettyXml = XmlUtils.loadXmlDocumentFromStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("jetty.xml"));
     }
 
     @Test
@@ -91,5 +93,31 @@ public class JettyConfigurationBuilderTest {
         assertThat(the(dataSource), isEquivalentTo(the(xml)));
     }
 
+    @Test
+    public void add_xforwarded_support() throws Exception {
 
+        // prepare
+        String json = "{ \n" +
+                "}";
+        Metadata metadata = Metadata.Builder.fromJsonString(json, true);
+        JettyConfigurationBuilder contextXmlBuilder = new JettyConfigurationBuilder(metadata, appDir);
+
+
+        // run
+        contextXmlBuilder.addXForwardedForSupport(jettyXml);
+
+        XmlUtils.flush(jettyXml, System.out);
+
+        String xml = "" +
+                "<Call name='addCustomizer'>" +
+                "   <Arg>" +
+                "      <New class='org.eclipse.jetty.server.ForwardedRequestCustomizer' />" +
+                "   </Arg>" +
+                "</Call> ";
+
+        // verify
+        Element addForwardedRequestCustomizer = XmlUtils.getUniqueElement(jettyXml, "/Configure/New[@id='httpConfig']/Call[@name='addCustomizer']");
+
+        assertThat(the(addForwardedRequestCustomizer), isEquivalentTo(the(xml)));
+    }
 }

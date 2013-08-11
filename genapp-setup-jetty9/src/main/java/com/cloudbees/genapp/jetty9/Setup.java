@@ -45,6 +45,6 @@ public class Setup {
 
         File appDir = new File(System.getenv("app_dir"));
         JettyConfigurationBuilder contextXmlBuilder = new JettyConfigurationBuilder(metadata, appDir);
-        contextXmlBuilder.buildJettyConfiguration("/jetty9/webapps/app.xml");
+        contextXmlBuilder.buildJettyConfiguration("/jetty9/etc/jetty.xml","/jetty9/webapps/app.xml");
     }
 }

@@ -37,6 +37,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:cleclerc@cloudbees.com">Cyrille Le Clerc</a>
@@ -87,6 +89,12 @@ public class XmlUtils {
     }
 
     public static void flush(Document in, OutputStream out) throws RuntimeException {
+        Map<String, String> outputProperties = new HashMap<>();
+
+        flush(in, out, outputProperties);
+    }
+
+    public static void flush(Document in, OutputStream out, Map<String, String> outputProperties) {
         try {
             // Write the content into XML file
             Transformer transformer = transformerFactory.newTransformer();
@@ -94,6 +102,10 @@ public class XmlUtils {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
+
+            for (Map.Entry<String, String> property : outputProperties.entrySet()) {
+                transformer.setOutputProperty(property.getKey(), property.getValue());
+            }
 
             transformer.transform(new DOMSource(in), new StreamResult(out));
         } catch (TransformerException e) {
