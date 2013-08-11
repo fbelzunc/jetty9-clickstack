@@ -15,7 +15,10 @@
 */
 package com.cloudbees.genapp.jetty9;
 
+import com.cloudbees.genapp.metadata.Metadata;
 import com.cloudbees.genapp.metadata.MetadataFinder;
+
+import java.io.File;
 
 /*
  * This class contains the main method to get the Genapp metadata and configure Tomcat 7.
@@ -33,9 +36,12 @@ public class Setup {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        JettyAppXmlBuilder jettyAppXmlBuilder = new JettyAppXmlBuilder();
-        // Build jetty9 app.xml file
-        MetadataFinder.setup("/jetty9/webapps/app.xml", jettyAppXmlBuilder);
+        MetadataFinder metadataFinder = new MetadataFinder();
+        Metadata metadata = metadataFinder.getMetadata();
 
+
+        File appDir = new File(System.getenv("app_dir"));
+        JettyAppXmlBuilder contextXmlBuilder = new JettyAppXmlBuilder(metadata, appDir);
+        contextXmlBuilder.buildJettyConfiguration("/jetty9/webapps/app.xml");
     }
 }
