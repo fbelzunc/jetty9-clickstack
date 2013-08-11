@@ -87,24 +87,24 @@
                resultAlias="threads_count"/>
         <query objectName="java.lang:type=Threading" attribute="PeakThreadCount"
                resultAlias="threads_peakCount"/>
-        <query objectName="java.lang:type=Threading" attribute="CurrentThreadCpuTime"
+        <query objectName="java.lang:type=Threading" attribute="CurrentThreadCpuTime" type="counter"
                resultAlias="threads_cputime"/>
 
         <query objectName="java.lang:type=ClassLoading" attribute="LoadedClassCount" 
                resultAlias="classes_loaded"/>
 
         <!-- JETTY -->
-        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="requests"
+        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="requests" type="counter"
                resultAlias="request_requestCount"/>
-        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="responses5xx"
+        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="responses5xx" type="counter"
                resultAlias="request_errorCount"/>
         <!--
-        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="bytesReceived"
+        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="bytesReceived" type="counter"
                resultAlias="request_bytesReceived"/>
         -->
-        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="responsesBytesTotal"
+        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="responsesBytesTotal" type="counter"
                resultAlias="request_bytesSent"/>
-        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="requestTimeTotal"
+        <query objectName="org.eclipse.jetty.server.handler:type=statisticshandler,id=0" attribute="requestTimeTotal" type="counter"
                resultAlias="request_processingTime"/>
 
         <!-- APPLICATION -->
@@ -116,7 +116,7 @@
         -->
     </queries>
 
-    <outputWriter class="org.jmxtrans.agent.FileOverwriterOutputWriter">
+    <outputWriter class="org.jmxtrans.agent.SummarizingFileOverwriterOutputWriter">
       <fileName>${jetty9_metrics_data_file:jmxtrans-agent.data}</fileName>
     </outputWriter>
 
