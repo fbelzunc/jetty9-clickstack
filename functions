@@ -120,6 +120,5 @@ write_config() {
 
 write_control() {
     echo "Writing control scripts to $control_dir"
-    install -m 550 $plugin_dir/control/start $control_dir
-    echo "This is the end of write_control() function"
+    install -m 550 "$plugin_dir/control/"* "$control_dir/"
 }
