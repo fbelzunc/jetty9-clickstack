@@ -15,6 +15,7 @@
 */
 package com.cloudbees.genapp.jetty9;
 
+import com.cloudbees.genapp.metadata.EnvBuilder;
 import com.cloudbees.genapp.metadata.Metadata;
 import com.cloudbees.genapp.metadata.MetadataFinder;
 
@@ -39,6 +40,8 @@ public class Setup {
         MetadataFinder metadataFinder = new MetadataFinder();
         Metadata metadata = metadataFinder.getMetadata();
 
+        EnvBuilder safeEnvBuilder = new EnvBuilder(true, false, metadata);
+        safeEnvBuilder.writeControlFile("/env_safe");
 
         File appDir = new File(System.getenv("app_dir"));
         JettyAppXmlBuilder contextXmlBuilder = new JettyAppXmlBuilder(metadata, appDir);

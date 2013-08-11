@@ -3,7 +3,7 @@ publish_bucket = cloudbees-clickstack
 publish_repo = testing
 publish_url = s3://$(publish_bucket)/$(publish_repo)/
 
-deps = lib lib/jetty.zip lib/tomcat-jdbc.jar lib/tomcat-juli.jar lib/mysql-connector-java.jar  lib/jmxtrans-agent.jar java
+deps = lib lib/jetty.zip lib/tomcat-jdbc.jar lib/tomcat-juli.jar lib/mysql-connector-java.jar  lib/jmxtrans-agent.jar java lib/cloudbees-jmx-invoker.jar
 
 pkg_files = control functions server setup lib java conf
 
@@ -58,6 +58,15 @@ jmxtrans_agent_md5 = 9dd2bdd2adb7df9dbae093a2c6b08678
 lib/jmxtrans-agent.jar: lib
 	curl -fLo lib/jmxtrans-agent.jar "$(jmxtrans_agent_url)"
 	$(call check-md5,lib/jmxtrans-agent.jar,$(jmxtrans_agent_md5))
+
+jmx_invoker_ver = 1.0.2
+jmx_invoker_src = http://repo1.maven.org/maven2/com/cloudbees/cloudbees-jmx-invoker/$(jmx_invoker_ver)/cloudbees-jmx-invoker-$(jmx_invoker_ver)-jar-with-dependencies.jar
+jmx_invoker_md5 = c880f7545775529cfce6ea6b67277453
+
+lib/cloudbees-jmx-invoker.jar: lib
+	mkdir -p lib
+	curl -fLo lib/cloudbees-jmx-invoker-jar-with-dependencies.jar "$(jmx_invoker_src)"
+	$(call check-md5,lib/cloudbees-jmx-invoker-jar-with-dependencies.jar,$(jmx_invoker_md5))
 
 
 lib/genapp-setup-jetty9.jar: $(JAVA_SOURCES) $(JAVA_JARS) lib

@@ -8,6 +8,7 @@ set -u
 create_app_skel
 install_jetty
 install_java_agent
+install_jmx_invoker
 install_jmxtrans_agent
 install_java_control_functions
 install_server_config

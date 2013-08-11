@@ -27,6 +27,11 @@ install_jetty() {
     cp -a "$plugin_dir/lib" "$jetty_dir/"
 }
 
+install_jmx_invoker() {
+   cp $plugin_dir/lib/cloudbees-jmx-invoker-jar-with-dependencies.jar $genapp_dir/lib/
+   install -m 750 $plugin_dir/control/jmx_invoker $control_dir
+}
+
 install_mysql_connector_jar() {
     echo "Installing mysql-connector"
     _mysql_connector_jar_file="$plugin_dir/lib/mysql-connector-java.jar"
@@ -99,6 +104,11 @@ write_config() {
     echo "app_dir=\"$app_dir\"" >> "$config"
     echo "port=$app_port" >> "$config"
     echo "java=\"$(find_java)\"" >> "$config"
+    java_home="$(dirname $(dirname $java))"
+    echo "Using JAVA_HOME at $java_home"
+    echo "JAVA_HOME=\"$java_home\"" >> "$config"
+    echo "genapp_dir=\"$genapp_dir\"" >> "$config"
+
     echo "jetty_opts=\"-Djetty.port=$app_port\"" >> "$config"
     echo "app_tmp=\"$app_dir/tmp\"" >> "$config"
     echo "log_dir=\"$log_dir\"" >> "$config"
