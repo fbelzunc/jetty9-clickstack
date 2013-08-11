@@ -27,6 +27,11 @@ install_jetty() {
     cp -a "$plugin_dir/lib" "$jetty_dir/"
 }
 
+install_jmx_invoker() {
+   cp $plugin_dir/lib/cloudbees-jmx-invoker-jar-with-dependencies.jar $genapp_dir/lib/
+   install -m 750 $plugin_dir/control/jmx_invoker $control_dir
+}
+
 install_mysql_connector_jar() {
     echo "Installing mysql-connector"
     _mysql_connector_jar_file="$plugin_dir/lib/mysql-connector-java.jar"
@@ -34,29 +39,18 @@ install_mysql_connector_jar() {
     install -m 750 "$_mysql_connector_jar_file" "$_mysql_connector_jar_dest"
 }
 
-
-install_commons_pool_jar() {
-    echo "commons_pool.jar"
-    _commons_pool_jar_file="$plugin_dir/lib/commons_pool.jar"
-    _commons_pool_jar_dest="$jetty_dir/lib/ext/"
-    install -m 750 "$_commons_pool_jar_file" "$_commons_pool_jar_dest"
+install_tomcat_jdbc_jar() {
+    echo "tomcat-jdbc.jar"
+    _tomcat_jdbc_jar_file="$plugin_dir/lib/tomcat-jdbc.jar"
+    _tomcat_jdbc_jar_dest="$jetty_dir/lib/ext/"
+    install -m 750 "$_tomcat_jdbc_jar_file" "$_tomcat_jdbc_jar_dest"
 }
-
-
-install_commons_dbcp_jar() {
-    echo "commons_pool.jar"
-    _commons_dbcp_jar_file="$plugin_dir/lib/commons_dbcp.jar"
-    _commons_dbcp_jar_dest="$jetty_dir/lib/ext/"
-    install -m 750 "$_commons_dbcp_jar_file" "$_commons_dbcp_jar_dest"
+install_tomcat_juli_jar() {
+    echo "tomcat-juli.jar"
+    _tomcat_juli_jar_file="$plugin_dir/lib/tomcat-juli.jar"
+    _tomcat_juli_jar_dest="$jetty_dir/lib/ext/"
+    install -m 750 "$_tomcat_juli_jar_file" "$_tomcat_juli_jar_dest"
 }
-
-install_commons_collection_jar() {
-    echo "commons_pool.jar"
-    _commons_collection_jar_file="$plugin_dir/lib/commons_collection.jar"
-    _commons_collection_jar_dest="$jetty_dir/lib/ext/"
-    install -m 750 "$_commons_collection_jar_file" "$_commons_collection_jar_dest"
-}
-
 
 install_jmxtrans_agent() {
     # The jmxtrans agent takes care of metrics reporting 
@@ -110,6 +104,11 @@ write_config() {
     echo "app_dir=\"$app_dir\"" >> "$config"
     echo "port=$app_port" >> "$config"
     echo "java=\"$(find_java)\"" >> "$config"
+    java_home="$(dirname $(dirname $java))"
+    echo "Using JAVA_HOME at $java_home"
+    echo "JAVA_HOME=\"$java_home\"" >> "$config"
+    echo "genapp_dir=\"$genapp_dir\"" >> "$config"
+
     echo "jetty_opts=\"-Djetty.port=$app_port\"" >> "$config"
     echo "app_tmp=\"$app_dir/tmp\"" >> "$config"
     echo "log_dir=\"$log_dir\"" >> "$config"

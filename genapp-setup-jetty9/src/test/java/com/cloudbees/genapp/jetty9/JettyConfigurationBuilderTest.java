@@ -32,14 +32,16 @@ import static org.xmlmatchers.transform.XmlConverters.the;
 /**
  * @author <a href="mailto:cleclerc@cloudbees.com">Cyrille Le Clerc</a>
  */
-public class JettyAppXmlBuilderTest {
+public class JettyConfigurationBuilderTest {
 
     File appDir = new File(System.getProperty("java.io.tmpdir"));
     private Document appXml;
+    private Document jettyXml;
 
     @Before
     public void before() throws Exception {
         appXml = XmlUtils.loadXmlDocumentFromStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("app.xml"));
+        jettyXml = XmlUtils.loadXmlDocumentFromStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("jetty.xml"));
     }
 
     @Test
@@ -56,7 +58,7 @@ public class JettyAppXmlBuilderTest {
                 "}\n" +
                 "}";
         Metadata metadata = Metadata.Builder.fromJsonString(json, true);
-        JettyAppXmlBuilder contextXmlBuilder = new JettyAppXmlBuilder(metadata, appDir);
+        JettyConfigurationBuilder contextXmlBuilder = new JettyConfigurationBuilder(metadata, appDir);
 
         Database database = metadata.getResource("mydb");
 
@@ -69,11 +71,18 @@ public class JettyAppXmlBuilderTest {
                 "   <New class='org.eclipse.jetty.plus.jndi.Resource' id='mydb'> \n" +
                 "      <Arg>jdbc/mydb</Arg> \n" +
                 "      <Arg> \n" +
-                "         <New class='org.apache.commons.dbcp.BasicDataSource'> \n" +
+                "         <New class='org.apache.tomcat.jdbc.pool.DataSource'> \n" +
                 "            <Set name='driverClassName'>com.mysql.jdbc.Driver</Set> \n" +
+                "            <Set name='maxActive'>20</Set> \n" +
+                "            <Set name='maxIdle'>10</Set> \n" +
+                "            <Set name='minIdle'>1</Set> \n" +
+                "            <Set name='password'>test</Set> \n" +
+                "            <Set name='testOnBorrow'>true</Set> \n" +
+                "            <Set name='testWhileIdle'>true</Set> \n" +
                 "            <Set name='url'>jdbc:mysql://mysql.mycompany.com:3306/test</Set> \n" +
                 "            <Set name='username'>test</Set> \n" +
-                "            <Set name='password'>test</Set> \n" +
+                "            <Set name='validationInterval'>5000</Set> \n" +
+                "            <Set name='validationQuery'>select 1</Set> \n" +
                 "         </New> \n" +
                 "      </Arg> \n" +
                 "   </New> ";
@@ -84,5 +93,31 @@ public class JettyAppXmlBuilderTest {
         assertThat(the(dataSource), isEquivalentTo(the(xml)));
     }
 
+    @Test
+    public void add_xforwarded_support() throws Exception {
 
+        // prepare
+        String json = "{ \n" +
+                "}";
+        Metadata metadata = Metadata.Builder.fromJsonString(json, true);
+        JettyConfigurationBuilder contextXmlBuilder = new JettyConfigurationBuilder(metadata, appDir);
+
+
+        // run
+        contextXmlBuilder.addXForwardedForSupport(jettyXml);
+
+        XmlUtils.flush(jettyXml, System.out);
+
+        String xml = "" +
+                "<Call name='addCustomizer'>" +
+                "   <Arg>" +
+                "      <New class='org.eclipse.jetty.server.ForwardedRequestCustomizer' />" +
+                "   </Arg>" +
+                "</Call> ";
+
+        // verify
+        Element addForwardedRequestCustomizer = XmlUtils.getUniqueElement(jettyXml, "/Configure/New[@id='httpConfig']/Call[@name='addCustomizer']");
+
+        assertThat(the(addForwardedRequestCustomizer), isEquivalentTo(the(xml)));
+    }
 }
