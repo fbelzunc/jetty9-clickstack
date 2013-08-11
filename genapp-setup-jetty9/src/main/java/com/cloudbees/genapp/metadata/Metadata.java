@@ -16,6 +16,7 @@
 package com.cloudbees.genapp.metadata;
 
 import com.cloudbees.genapp.resource.Resource;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -38,6 +39,10 @@ public class Metadata {
     public Metadata(Map<String, Resource> resources) {
         this.resources = new TreeMap<String, Resource>();
         this.resources.putAll(resources);
+    }
+
+    public <R extends Resource> R getResource(String resourceName) {
+        return (R) resources.get(resourceName);
     }
 
     public Map<String, Resource> getResources() {
@@ -74,6 +79,39 @@ public class Metadata {
             Builder metadataBuilder = new Builder();
 
             return metadataBuilder.buildResources(metadataRootNode);
+        }
+
+        /**
+         * This method is called from the fromStream method to parse json from a stream.
+         *
+         * @param metadataRootNode the JSON metadata from.
+         * @return A new Metadata instance, containing all resources parsed
+         *         from the JSON metadata given as input.
+         * @throws IOException
+         */
+        public static Metadata fromJson(JsonNode metadataRootNode) throws IOException {
+
+            Builder metadataBuilder = new Builder();
+
+            return metadataBuilder.buildResources(metadataRootNode);
+        }
+
+        /**
+         * This method is called from the fromStream method to parse json from a stream.
+         *
+         * @param metadata the JSON metadata.
+         * @return A new Metadata instance, containing all resources parsed
+         *         from the JSON metadata given as input.
+         * @throws IOException
+         */
+        public static Metadata fromJsonString(String metadata, boolean allowSingleQuotes) throws IOException {
+
+            ObjectMapper metadataObjectMapper = new ObjectMapper();
+            metadataObjectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+
+            JsonNode metadataRootNode = metadataObjectMapper.readTree(metadata);
+
+            return fromJson(metadataRootNode);
         }
 
         /**

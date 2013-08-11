@@ -15,67 +15,57 @@
 */
 package com.cloudbees.genapp.jetty9;
 
-import java.io.File;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import com.cloudbees.genapp.metadata.ConfigurationBuilder;
+import com.cloudbees.genapp.XmlUtils;
+import com.cloudbees.genapp.metadata.Metadata;
+import com.cloudbees.genapp.resource.Database;
+import com.cloudbees.genapp.resource.Email;
+import com.cloudbees.genapp.resource.Resource;
 import com.cloudbees.genapp.resource.SessionStore;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.cloudbees.genapp.metadata.Metadata;
-import com.cloudbees.genapp.resource.Resource;
-import com.cloudbees.genapp.resource.Database;
-
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
-import com.cloudbees.genapp.resource.Email;
-
-public class JettyAppXmlBuilder implements ConfigurationBuilder {
+public class JettyAppXmlBuilder {
 
     private final Logger logger = Logger.getLogger(getClass().getName());
-    private Document contextDocument;
+
     private Metadata metadata;
+    private Set<String> databaseProperties = new HashSet(Arrays.asList("minIdle", "maxIdle", "maxActive", "maxWait",
+            "initialSize",
+            "validationQuery", "validationQueryTimeout", "testOnBorrow", "testOnReturn",
+            "timeBetweenEvictionRunsMillis", "numTestsPerEvictionRun", "minEvictableIdleTimeMillis", "testWhileIdle",
+            "removeAbandoned", "removeAbandonedTimeout", "logAbandoned", "defaultAutoCommit", "defaultReadOnly",
+            "defaultTransactionIsolation", "poolPreparedStatements", "maxOpenPreparedStatements", "defaultCatalog",
+            "connectionInitSqls", "connectionProperties", "accessToUnderlyingConnectionAllowed",
+            "factory", "type", "validatorClassName", "initSQL", "jdbcInterceptors", "validationInterval", "jmxEnabled",
+            "fairQueue", "abandonWhenPercentageFull", "maxAge", "useEquals", "suspectTimeout", "rollbackOnReturn",
+            "commitOnReturn", "alternateUsernameAllowed", "useDisposableConnectionFacade", "logValidationErrors",
+            "propagateInterruptState"));
+    private File appDir;
 
-    public JettyAppXmlBuilder() {
-    }
-
-    private JettyAppXmlBuilder(Metadata metadata) {
+    public JettyAppXmlBuilder(Metadata metadata, File appDir) {
         this.metadata = metadata;
-    }
-
-    public JettyAppXmlBuilder create(Metadata metadata) {
-        return new JettyAppXmlBuilder(metadata);
-    }
-
-    private JettyAppXmlBuilder addResources(Metadata metadata) {
-        for (Resource resource : metadata.getResources().values()) {
-            if (resource instanceof Database) {
-                addDatabase((Database) resource);
-            } else if (resource instanceof Email) {
-                addEmail((Email) resource);
-            } else if (resource instanceof SessionStore) {
-                addSessionStore((SessionStore) resource);
-            }
-
+        if (!appDir.exists()) {
+            throw new IllegalArgumentException("appDir does not exist '" + appDir.getAbsolutePath() + "'");
+        } else if (!appDir.isDirectory()) {
+            throw new IllegalArgumentException("appDir must be a directory '" + appDir.getAbsolutePath() + "'");
         }
-        return this;
+        this.appDir = appDir;
     }
 
     /**
      * See <a href="http://wiki.eclipse.org/Jetty/Howto/Configure_JNDI_Datasource">Jetty/Howto/Configure JNDI Datasource</a>
-     *
-     * @param database
-     * @return
      */
-    private JettyAppXmlBuilder addDatabase(Database database) {
-
+    protected JettyAppXmlBuilder addDatabase(Database database, Document contextDocument) {
         //Add database Jetty 9
         logger.info("Insert DataSource " + database.getName());
 
@@ -96,74 +86,67 @@ public class JettyAppXmlBuilder implements ConfigurationBuilder {
         dataSourceInstance.setAttribute("class", "org.apache.commons.dbcp.BasicDataSource");
         objectToBind.appendChild(dataSourceInstance);
 
-        dataSourceInstance.appendChild(createJettyConfigSetDirective("driverClassName", database.getJavaDriver()));
-        dataSourceInstance.appendChild(createJettyConfigSetDirective("url", "jdbc:" + database.getUrl()));
-        dataSourceInstance.appendChild(createJettyConfigSetDirective("username", database.getUsername()));
-        dataSourceInstance.appendChild(createJettyConfigSetDirective("password", database.getPassword()));
+        dataSourceInstance.appendChild(createJettyConfigSetDirective("driverClassName", database.getJavaDriver(),contextDocument));
+        dataSourceInstance.appendChild(createJettyConfigSetDirective("url", "jdbc:" + database.getUrl(),contextDocument));
+        dataSourceInstance.appendChild(createJettyConfigSetDirective("username", database.getUsername(),contextDocument));
+        dataSourceInstance.appendChild(createJettyConfigSetDirective("password", database.getPassword(),contextDocument));
 
         contextDocument.getDocumentElement().appendChild(dataSource);
-
         return this;
     }
-
-    private Element createJettyConfigSetDirective(String name, String value) {
+    private Element createJettyConfigSetDirective(String name, String value, Document contextDocument) {
         Element setElement = contextDocument.createElement("Set");
         setElement.setAttribute("name", name);
         setElement.setTextContent(value);
         return setElement;
     }
-
-    private JettyAppXmlBuilder addEmail(Email email) {
-        logger.warning("email is not yet supported, ignore it");
+    protected JettyAppXmlBuilder addEmail(Email email, Document appXmlDocument) {
+        logger.warning("Ignore addEmail(" + email + ")");
         return this;
     }
 
-    private JettyAppXmlBuilder addSessionStore(SessionStore store) {
-        logger.warning("session store is not yet supported, ignore it");
+    protected JettyAppXmlBuilder addSessionStore(SessionStore store, Document appXmlDocument) {
+        logger.warning("Ignore addSessionStore(" + store + ")");
+
         return this;
     }
 
-    private JettyAppXmlBuilder fromExistingDocument(Document contextDocument) {
-        String rootElementName = contextDocument.getDocumentElement().getNodeName();
-        if (!rootElementName.equals("Configure"))
-            throw new IllegalArgumentException("Document is missing root <Context> element");
-        this.contextDocument = contextDocument;
+    protected JettyAppXmlBuilder addPrivateAppValve(Metadata metadata, Document appXmlDocument) {
+        logger.warning("Ignore addPrivateAppValve(" + metadata + ")");
+
         return this;
     }
 
-    private JettyAppXmlBuilder fromExistingDocument(File file) throws Exception {
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        Document document = documentBuilder.parse(file);
-        fromExistingDocument(document);
-        return this;
-    }
+    protected void buildJettyConfiguration(Metadata metadata, Document appXmlDocument) throws ParserConfigurationException {
 
-    private Document buildContextDocument() throws ParserConfigurationException {
-        if (contextDocument == null) {
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-            contextDocument = documentBuilder.newDocument();
-            Element rootContextDocumentElement = contextDocument.createElement("Context");
-            contextDocument.appendChild(rootContextDocumentElement);
+        String message = "File generated by jetty9-clickstack at " + new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date());
+
+        appXmlDocument.appendChild(appXmlDocument.createComment(message));
+
+        for (Resource resource : metadata.getResources().values()) {
+            if (resource instanceof Database) {
+                addDatabase((Database) resource, appXmlDocument);
+            } else if (resource instanceof Email) {
+                addEmail((Email) resource, appXmlDocument);
+            } else if (resource instanceof SessionStore) {
+                addSessionStore((SessionStore) resource, appXmlDocument);
+            }
         }
-        addResources(metadata);
-        return contextDocument;
+        addPrivateAppValve(metadata, appXmlDocument);
     }
 
-    @Override
-    public void writeConfiguration(Metadata metadata, File configurationFile) throws Exception {
-        Document contextXml = this.create(metadata).fromExistingDocument(configurationFile).buildContextDocument();
+    /**
+     * @param appXmlFilePath relative to {@link #appDir}
+     */
+    public void buildJettyConfiguration( String appXmlFilePath) throws Exception {
 
-        // Write the content into XML file
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-        transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
-        transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "-//Mort Bay Consulting//DTD Configure//EN");
-        transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "http://jetty.mortbay.org/configure.dtd");
+        File contextXmlFile = new File(appDir, appXmlFilePath);
+        Document contextXmlDocument = XmlUtils.loadXmlDocumentFromFile(contextXmlFile);
+        XmlUtils.checkRootElement(contextXmlDocument, "Configure");
 
-        transformer.transform(new DOMSource(contextXml), new StreamResult(configurationFile));
+
+        this.buildJettyConfiguration(metadata, contextXmlDocument);
+
+        XmlUtils.flush(contextXmlDocument, new FileOutputStream(contextXmlFile));
     }
 }
