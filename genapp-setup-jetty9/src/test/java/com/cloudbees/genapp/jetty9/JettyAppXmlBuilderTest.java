@@ -69,11 +69,18 @@ public class JettyAppXmlBuilderTest {
                 "   <New class='org.eclipse.jetty.plus.jndi.Resource' id='mydb'> \n" +
                 "      <Arg>jdbc/mydb</Arg> \n" +
                 "      <Arg> \n" +
-                "         <New class='org.apache.commons.dbcp.BasicDataSource'> \n" +
+                "         <New class='org.apache.tomcat.jdbc.pool.DataSource'> \n" +
                 "            <Set name='driverClassName'>com.mysql.jdbc.Driver</Set> \n" +
+                "            <Set name='maxActive'>20</Set> \n" +
+                "            <Set name='maxIdle'>10</Set> \n" +
+                "            <Set name='minIdle'>1</Set> \n" +
+                "            <Set name='password'>test</Set> \n" +
+                "            <Set name='testOnBorrow'>true</Set> \n" +
+                "            <Set name='testWhileIdle'>true</Set> \n" +
                 "            <Set name='url'>jdbc:mysql://mysql.mycompany.com:3306/test</Set> \n" +
                 "            <Set name='username'>test</Set> \n" +
-                "            <Set name='password'>test</Set> \n" +
+                "            <Set name='validationInterval'>5000</Set> \n" +
+                "            <Set name='validationQuery'>select 1</Set> \n" +
                 "         </New> \n" +
                 "      </Arg> \n" +
                 "   </New> ";

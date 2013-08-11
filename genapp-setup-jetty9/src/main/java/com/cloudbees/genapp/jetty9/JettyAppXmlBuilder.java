@@ -28,16 +28,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class JettyAppXmlBuilder {
 
     private final Logger logger = Logger.getLogger(getClass().getName());
-
     private Metadata metadata;
     private Set<String> databaseProperties = new HashSet(Arrays.asList("minIdle", "maxIdle", "maxActive", "maxWait",
             "initialSize",
@@ -46,7 +42,7 @@ public class JettyAppXmlBuilder {
             "removeAbandoned", "removeAbandonedTimeout", "logAbandoned", "defaultAutoCommit", "defaultReadOnly",
             "defaultTransactionIsolation", "poolPreparedStatements", "maxOpenPreparedStatements", "defaultCatalog",
             "connectionInitSqls", "connectionProperties", "accessToUnderlyingConnectionAllowed",
-            "factory", "type", "validatorClassName", "initSQL", "jdbcInterceptors", "validationInterval", "jmxEnabled",
+            "type", "validatorClassName", "initSQL", "jdbcInterceptors", "validationInterval", "jmxEnabled",
             "fairQueue", "abandonWhenPercentageFull", "maxAge", "useEquals", "suspectTimeout", "rollbackOnReturn",
             "commitOnReturn", "alternateUsernameAllowed", "useDisposableConnectionFacade", "logValidationErrors",
             "propagateInterruptState"));
@@ -83,23 +79,41 @@ public class JettyAppXmlBuilder {
 
 
         Element dataSourceInstance = contextDocument.createElement("New");
-        dataSourceInstance.setAttribute("class", "org.apache.commons.dbcp.BasicDataSource");
+        dataSourceInstance.setAttribute("class", "org.apache.tomcat.jdbc.pool.DataSource");
         objectToBind.appendChild(dataSourceInstance);
 
-        dataSourceInstance.appendChild(createJettyConfigSetDirective("driverClassName", database.getJavaDriver(),contextDocument));
-        dataSourceInstance.appendChild(createJettyConfigSetDirective("url", "jdbc:" + database.getUrl(),contextDocument));
-        dataSourceInstance.appendChild(createJettyConfigSetDirective("username", database.getUsername(),contextDocument));
-        dataSourceInstance.appendChild(createJettyConfigSetDirective("password", database.getPassword(),contextDocument));
+        Map<String, String> params = new TreeMap<>();
+        params.put("driverClassName", database.getJavaDriver());
+        params.put("url", "jdbc:" + database.getUrl());
+        params.put("username", database.getUsername());
+        params.put("password", database.getPassword());
+
+        // by default max to 20 connections which is the limit of CloudBees MySQL databases
+        params.put("maxActive", "20");
+        params.put("maxIdle", "10");
+        params.put("minIdle", "1");
+
+        // test on borrow and while idle to release idle connections
+        params.put("testOnBorrow", "true");
+        params.put("testWhileIdle", "true");
+        params.put("validationQuery", database.getValidationQuery());
+        params.put("validationInterval", "5000"); // 5 secs
+
+        for (Map.Entry<String, String> param : params.entrySet()) {
+            dataSourceInstance.appendChild(createJettyConfigSetDirective(param.getKey(), param.getValue(), contextDocument));
+        }
 
         contextDocument.getDocumentElement().appendChild(dataSource);
         return this;
     }
+
     private Element createJettyConfigSetDirective(String name, String value, Document contextDocument) {
         Element setElement = contextDocument.createElement("Set");
         setElement.setAttribute("name", name);
         setElement.setTextContent(value);
         return setElement;
     }
+
     protected JettyAppXmlBuilder addEmail(Email email, Document appXmlDocument) {
         logger.warning("Ignore addEmail(" + email + ")");
         return this;
@@ -138,7 +152,7 @@ public class JettyAppXmlBuilder {
     /**
      * @param appXmlFilePath relative to {@link #appDir}
      */
-    public void buildJettyConfiguration( String appXmlFilePath) throws Exception {
+    public void buildJettyConfiguration(String appXmlFilePath) throws Exception {
 
         File contextXmlFile = new File(appDir, appXmlFilePath);
         Document contextXmlDocument = XmlUtils.loadXmlDocumentFromFile(contextXmlFile);

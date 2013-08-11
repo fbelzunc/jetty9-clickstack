@@ -65,6 +65,19 @@ public class Database extends Resource {
         return null;
     }
 
+    public static String getValidationQuery(String driver) {
+        if (driver.equals("mysql"))
+            return "select 1";
+        else if (driver.equals("sql"))
+            return "select 1";
+        else if (driver.equals("postgres"))
+            return "select version();";
+        else if (driver.equals("oracle"))
+            return "select 1 from dual";
+        else
+            return "select 1";
+    }
+
     /**
      * Checks if a given Resource is a database definition.
      * @param resource The Resource to be tested.
@@ -111,5 +124,9 @@ public class Database extends Resource {
 
     public String getDataSourceClassName() {
         return getDataSourceClassName(getDriver(getProperty(URL_PROPERTY)));
+    }
+
+    public String getValidationQuery() {
+        return getValidationQuery(getDriver(getProperty(URL_PROPERTY)));
     }
 }

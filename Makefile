@@ -3,7 +3,7 @@ publish_bucket = cloudbees-clickstack
 publish_repo = testing
 publish_url = s3://$(publish_bucket)/$(publish_repo)/
 
-deps = lib lib/jetty.zip lib/mysql-connector-java.jar lib/commons_collection.jar lib/commons_dbcp.jar lib/commons_pool.jar lib/jmxtrans-agent.jar java 
+deps = lib lib/jetty.zip lib/tomcat-jdbc.jar lib/tomcat-juli.jar lib/mysql-connector-java.jar  lib/jmxtrans-agent.jar java
 
 pkg_files = control functions server setup lib java conf
 
@@ -26,32 +26,21 @@ lib/jetty.zip: lib lib/genapp-setup-jetty9.jar
 	zip -rqy ../jetty.zip *
 	rm -rf lib/jetty-distribution-$(jetty_ver)
 
-commons_collections_ver = 20040616
-commons_collections_url = http://search.maven.org/remotecontent?filepath=commons-collections/commons-collections/$(commons_collections_ver)/commons-collections-$(commons_collections_ver).jar
-commons_collections_md5 = a10017d52f238aebbdd0224ef15e2d8c
+tomcat_jdbc_ver = 7.0.42
+tomcat_jdbc_url = http://repo1.maven.org/maven2/org/apache/tomcat/tomcat-jdbc/$(tomcat_jdbc_ver)/tomcat-jdbc-$(tomcat_jdbc_ver).jar
+tomcat_jdbc_md5 = 0955fb87c56cb6a2790e44760dc90508
 
-lib/commons_collection.jar:	
-	curl -fLo lib/commons_collection.jar "$(commons_collections_url)"
-	$(call check-md5,lib/commons_collection.jar,$(commons_collections_md5))
+lib/tomcat-jdbc.jar:
+	curl -fLo lib/tomcat-jdbc.jar "$(tomcat_jdbc_url)"
+	$(call check-md5,lib/tomcat-jdbc.jar,$(tomcat_jdbc_md5))
 
+tomcat_juli_ver = 7.0.42
+tomcat_juli_url = http://repo1.maven.org/maven2/org/apache/tomcat/tomcat-juli/$(tomcat_juli_ver)/tomcat-juli-$(tomcat_juli_ver).jar
+tomcat_juli_md5 = ff8d7673a10e6aca13d2ac9ab91998a1
 
-commons_dbcp_ver = 20030825.184428
-commons_dbcp_url = http://search.maven.org/remotecontent?filepath=commons-dbcp/commons-dbcp/$(commons_dbcp_ver)/commons-dbcp-$(commons_dbcp_ver).jar
-commons_dbcp_md5 = a0a0beadd76c8a9c7c7c039d8495caf6
-
-lib/commons_dbcp.jar:	
-	curl -fLo lib/commons_dbcp.jar "$(commons_dbcp_url)"
-	$(call check-md5,lib/commons_dbcp.jar,$(commons_dbcp_md5))
-
-
-commons_pool_ver = 20030825.183949
-commons_pool_url = http://search.maven.org/remotecontent?filepath=commons-pool/commons-pool/$(commons_pool_ver)/commons-pool-$(commons_pool_ver).jar
-commons_pool_md5 = 11125c1b5c3a86ae37e2f9ee05683d35
-
-lib/commons_pool.jar:	
-	curl -fLo lib/commons_pool.jar "$(commons_pool_url)"
-	$(call check-md5,lib/commons_pool.jar,$(commons_pool_md5))
-
+lib/tomcat-juli.jar:
+	curl -fLo lib/tomcat-juli.jar "$(tomcat_juli_url)"
+	$(call check-md5,lib/tomcat-juli.jar,$(tomcat_juli_md5))
 
 mysql_connector_ver = 5.1.25
 mysql_connector_url = http://repo1.maven.org/maven2/mysql/mysql-connector-java/$(mysql_connector_ver)/mysql-connector-java-$(mysql_connector_ver).jar
