@@ -44,7 +44,7 @@ public class Setup {
         safeEnvBuilder.writeControlFile("/env_safe");
 
         File appDir = new File(System.getenv("app_dir"));
-        JettyAppXmlBuilder contextXmlBuilder = new JettyAppXmlBuilder(metadata, appDir);
+        JettyConfigurationBuilder contextXmlBuilder = new JettyConfigurationBuilder(metadata, appDir);
         contextXmlBuilder.buildJettyConfiguration("/jetty9/webapps/app.xml");
     }
 }

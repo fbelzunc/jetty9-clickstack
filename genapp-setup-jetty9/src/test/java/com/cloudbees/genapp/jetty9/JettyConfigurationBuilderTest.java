@@ -32,7 +32,7 @@ import static org.xmlmatchers.transform.XmlConverters.the;
 /**
  * @author <a href="mailto:cleclerc@cloudbees.com">Cyrille Le Clerc</a>
  */
-public class JettyAppXmlBuilderTest {
+public class JettyConfigurationBuilderTest {
 
     File appDir = new File(System.getProperty("java.io.tmpdir"));
     private Document appXml;
@@ -56,7 +56,7 @@ public class JettyAppXmlBuilderTest {
                 "}\n" +
                 "}";
         Metadata metadata = Metadata.Builder.fromJsonString(json, true);
-        JettyAppXmlBuilder contextXmlBuilder = new JettyAppXmlBuilder(metadata, appDir);
+        JettyConfigurationBuilder contextXmlBuilder = new JettyConfigurationBuilder(metadata, appDir);
 
         Database database = metadata.getResource("mydb");
 

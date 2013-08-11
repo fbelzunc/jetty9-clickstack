@@ -31,7 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class JettyAppXmlBuilder {
+public class JettyConfigurationBuilder {
 
     private final Logger logger = Logger.getLogger(getClass().getName());
     private Metadata metadata;
@@ -48,7 +48,7 @@ public class JettyAppXmlBuilder {
             "propagateInterruptState"));
     private File appDir;
 
-    public JettyAppXmlBuilder(Metadata metadata, File appDir) {
+    public JettyConfigurationBuilder(Metadata metadata, File appDir) {
         this.metadata = metadata;
         if (!appDir.exists()) {
             throw new IllegalArgumentException("appDir does not exist '" + appDir.getAbsolutePath() + "'");
@@ -61,7 +61,7 @@ public class JettyAppXmlBuilder {
     /**
      * See <a href="http://wiki.eclipse.org/Jetty/Howto/Configure_JNDI_Datasource">Jetty/Howto/Configure JNDI Datasource</a>
      */
-    protected JettyAppXmlBuilder addDatabase(Database database, Document contextDocument) {
+    protected JettyConfigurationBuilder addDatabase(Database database, Document contextDocument) {
         //Add database Jetty 9
         logger.info("Insert DataSource " + database.getName());
 
@@ -114,18 +114,18 @@ public class JettyAppXmlBuilder {
         return setElement;
     }
 
-    protected JettyAppXmlBuilder addEmail(Email email, Document appXmlDocument) {
+    protected JettyConfigurationBuilder addEmail(Email email, Document appXmlDocument) {
         logger.warning("Ignore addEmail(" + email + ")");
         return this;
     }
 
-    protected JettyAppXmlBuilder addSessionStore(SessionStore store, Document appXmlDocument) {
+    protected JettyConfigurationBuilder addSessionStore(SessionStore store, Document appXmlDocument) {
         logger.warning("Ignore addSessionStore(" + store + ")");
 
         return this;
     }
 
-    protected JettyAppXmlBuilder addPrivateAppValve(Metadata metadata, Document appXmlDocument) {
+    protected JettyConfigurationBuilder addPrivateAppValve(Metadata metadata, Document appXmlDocument) {
         logger.warning("Ignore addPrivateAppValve(" + metadata + ")");
 
         return this;
@@ -154,13 +154,12 @@ public class JettyAppXmlBuilder {
      */
     public void buildJettyConfiguration(String appXmlFilePath) throws Exception {
 
-        File contextXmlFile = new File(appDir, appXmlFilePath);
-        Document contextXmlDocument = XmlUtils.loadXmlDocumentFromFile(contextXmlFile);
-        XmlUtils.checkRootElement(contextXmlDocument, "Configure");
+        File appXmlFile = new File(appDir, appXmlFilePath);
+        Document appXmlDocument = XmlUtils.loadXmlDocumentFromFile(appXmlFile);
+        XmlUtils.checkRootElement(appXmlDocument, "Configure");
 
+        this.buildJettyConfiguration(metadata, appXmlDocument);
 
-        this.buildJettyConfiguration(metadata, contextXmlDocument);
-
-        XmlUtils.flush(contextXmlDocument, new FileOutputStream(contextXmlFile));
+        XmlUtils.flush(appXmlDocument, new FileOutputStream(appXmlFile));
     }
 }
