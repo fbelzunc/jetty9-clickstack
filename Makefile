@@ -13,7 +13,7 @@ lib:
 	mkdir -p lib
 
 jetty_ver = 9.0.4.v20130625
-jetty_url = http://eclipse.org/downloads/download.php?file=/jetty/stable-9/dist/jetty-distribution-$(jetty_ver).zip&r=1
+jetty_url = http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.0.4.v20130625/jetty-distribution-9.0.4.v20130625.zip
 jetty_md5 = d3d8881130f50099157411658efcd61d
 
 lib/jetty.zip: lib lib/genapp-setup-jetty9.jar
