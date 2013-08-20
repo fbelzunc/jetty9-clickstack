@@ -12,9 +12,9 @@ include plugin.mk
 lib:
 	mkdir -p lib
 
-jetty_ver = 9.0.4.v20130625
-jetty_url = http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.0.4.v20130625/jetty-distribution-9.0.4.v20130625.zip
-jetty_md5 = d3d8881130f50099157411658efcd61d
+jetty_ver = 9.0.5.v20130815
+jetty_url = http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(jetty_ver)/jetty-distribution-$(jetty_ver).zip
+jetty_md5 = 7a7a6b1d7fed2d051531b8f27b75259a
 
 lib/jetty.zip: lib lib/genapp-setup-jetty9.jar
 	curl -fLo lib/jetty.zip "$(jetty_url)"
