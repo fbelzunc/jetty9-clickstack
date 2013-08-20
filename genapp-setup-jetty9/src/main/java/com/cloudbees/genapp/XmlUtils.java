@@ -48,6 +48,17 @@ public class XmlUtils {
     private final static DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
     private final static TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
+    static {
+        documentBuilderFactory.setValidating(false);
+        try {
+            documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Exception disabling 'http://apache.org/xml/features/nonvalidating/load-external-dtd'", e);
+        }
+
+    }
+
     public static Element getUniqueElement(Document document, String xpathExpression) {
         return getUniqueElement((Node) document, xpathExpression);
 
