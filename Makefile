@@ -51,9 +51,9 @@ lib/mysql-connector-java.jar:
 	$(call check-md5,lib/mysql-connector-java.jar,$(mysql_connector_md5))
 
 
-jmxtrans_agent_ver = 1.0.4
+jmxtrans_agent_ver = 1.0.6
 jmxtrans_agent_url = http://repo1.maven.org/maven2/org/jmxtrans/agent/jmxtrans-agent/$(jmxtrans_agent_ver)/jmxtrans-agent-$(jmxtrans_agent_ver).jar
-jmxtrans_agent_md5 = 3e6f619d2c07841812704627ed96a991
+jmxtrans_agent_md5 = aed0bb9c816ac3b32cf1d5d537dbb6e4
 
 lib/jmxtrans-agent.jar: lib
 	curl -fLo lib/jmxtrans-agent.jar "$(jmxtrans_agent_url)"
