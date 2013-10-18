@@ -3,4 +3,4 @@ set -e
 set -u
 control_dir="$(dirname $0)"
 . "$control_dir/config"
-cat "$log_dir/jetty9-metrics.data"
+cat "$log_dir/jetty-metrics.data"
