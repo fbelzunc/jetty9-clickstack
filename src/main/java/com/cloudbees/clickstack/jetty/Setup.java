@@ -218,7 +218,7 @@ public class Setup {
     }
 
     public Path installApplication() throws IOException {
-        logger.debug("installCatalinaBase() {}", jettyHome);
+        logger.debug("installApplication() {}", jettyHome);
 
         Path rootWebAppDir = Files.createDirectories(jettyHome.resolve("webapps"));
         Files2.copyToDirectory(warFile, rootWebAppDir);
