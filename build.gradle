@@ -34,7 +34,7 @@ configurations {
 }
 
 dependencies {
-    compile 'com.cloudbees.clickstack:clickstack-framework:1.0.6'
+    compile 'com.cloudbees.clickstack:clickstack-framework:1.0.7-SNAPSHOT'
     compile 'com.fasterxml.jackson.core:jackson-core:2.1.3'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.1.3'
     compile 'com.google.code.findbugs:jsr305:2.0.1'
