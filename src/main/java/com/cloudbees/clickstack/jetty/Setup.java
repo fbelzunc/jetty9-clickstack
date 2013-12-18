@@ -100,11 +100,9 @@ public class Setup {
         Files2.chmodAddReadWrite(tmpDir);
 
         this.clickstackDir = env.clickstackDir;
-        System.out.println("clickstackDir "+this.clickstackDir);
         Preconditions.checkState(Files.exists(clickstackDir) && Files.isDirectory(clickstackDir));
 
         this.warFile = env.packageDir.resolve("app.war");
-        System.out.println("warFile "+this.warFile);
         Preconditions.checkState(Files.exists(warFile), "File not found %s", warFile);
         Preconditions.checkState(!Files.isDirectory(warFile), "Expected to be a file and not a directory %s", warFile);
 
@@ -162,7 +160,7 @@ public class Setup {
         installJettyJavaOpts();
 
         SetupJettyConfigurationFiles setupTomcatConfigurationFiles = new SetupJettyConfigurationFiles(metadata);
-        setupTomcatConfigurationFiles.buildJettyConfiguration(jettyBase);
+        setupTomcatConfigurationFiles.buildJettyConfiguration(jettyBase, jettyHome);
         logger.info("Clickstack successfully installed");
     }
 

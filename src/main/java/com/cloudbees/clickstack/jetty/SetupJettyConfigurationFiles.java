@@ -158,9 +158,9 @@ public class SetupJettyConfigurationFiles {
         addXForwardedForSupport(jettyXmlDocument);
     }
 
-    public void buildJettyConfiguration(@Nonnull Path jettyBase) throws Exception {
+    public void buildJettyConfiguration(@Nonnull Path jettyBase, @Nonnull Path jettyHome) throws Exception {
 
-        Path jettyXmlFile = jettyBase.resolve("etc/jetty.xml");
+        Path jettyXmlFile = jettyHome.resolve("etc/jetty.xml");
         Document jettyXmlDocument = XmlUtils.loadXmlDocumentFromPath(jettyXmlFile);
         XmlUtils.checkRootElement(jettyXmlDocument, "Configure");
 
