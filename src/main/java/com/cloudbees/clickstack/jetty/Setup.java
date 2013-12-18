@@ -76,6 +76,8 @@ public class Setup {
      */
     @Nullable
     Path jettyHome;
+    @Nonnull
+    final Path jettyBase;
 
 
     public Setup(@Nonnull Environment env, @Nonnull Metadata metadata, @Nonnull Path javaHome) throws IOException {
@@ -90,15 +92,19 @@ public class Setup {
         this.logDir = Files.createDirectories(genappDir.resolve("log"));
         Files2.chmodAddReadWrite(logDir);
 
+        this.jettyBase = Files.createDirectories(appDir.resolve("jetty-base"));
+
         this.agentLibDir = Files.createDirectories(appDir.resolve("javaagent-lib"));
 
         this.tmpDir = Files.createDirectories(appDir.resolve("tmp"));
         Files2.chmodAddReadWrite(tmpDir);
 
         this.clickstackDir = env.clickstackDir;
+        System.out.println("clickstackDir "+this.clickstackDir);
         Preconditions.checkState(Files.exists(clickstackDir) && Files.isDirectory(clickstackDir));
 
         this.warFile = env.packageDir.resolve("app.war");
+        System.out.println("warFile "+this.warFile);
         Preconditions.checkState(Files.exists(warFile), "File not found %s", warFile);
         Preconditions.checkState(!Files.isDirectory(warFile), "Expected to be a file and not a directory %s", warFile);
 
@@ -111,6 +117,7 @@ public class Setup {
         Preconditions.checkArgument(Files.exists(javaHome), "JavaHome does not exist %s", javaHome);
 
         logger.debug("warFile: {}", warFile.toAbsolutePath());
+        logger.debug("jettyBase: {}", jettyBase.toAbsolutePath());
         logger.debug("agentLibDir: {}", agentLibDir.toAbsolutePath());
         logger.debug("appExtraFilesDir: {}", appExtraFilesDir.toAbsolutePath());
     }
@@ -146,7 +153,7 @@ public class Setup {
     public void setup() throws Exception {
         installJettyHome();
         installSkeleton();
-        installApplication();
+        Path jettyBase = installJettyBase();
         installCloudBeesJavaAgent();
         installJmxTransAgent();
         writeJavaOpts();
@@ -155,7 +162,7 @@ public class Setup {
         installJettyJavaOpts();
 
         SetupJettyConfigurationFiles setupTomcatConfigurationFiles = new SetupJettyConfigurationFiles(metadata);
-        setupTomcatConfigurationFiles.buildJettyConfiguration(jettyHome);
+        setupTomcatConfigurationFiles.buildJettyConfiguration(jettyBase);
         logger.info("Clickstack successfully installed");
     }
 
@@ -171,6 +178,7 @@ public class Setup {
         String opts = "" +
                 "-Djava.io.tmpdir=\"" + tmpDir + "\" " +
                 "-Djetty.home=\"" + jettyHome + "\" " +
+                "-Djetty.base=\"" + jettyBase + "\" " +
                 "-Dapp_extra_files=\"" + appExtraFilesDir + "\" " +
                 "-Djetty.port=" + env.appPort + "";
 
@@ -181,13 +189,10 @@ public class Setup {
 
         Path jettyPackagePath = Files2.findArtifact(clickstackDir, "jetty-distribution", "zip");
         Files2.unzip(jettyPackagePath, appDir);
-        jettyHome = Files2.findUniqueFolderBeginningWith(appDir, "jetty-distribution");
+        jettyHome = Files2.findUniqueDirectoryBeginningWith(appDir, "jetty-distribution");
         logger.debug("installJettyHome() {}", jettyHome);
 
-        Files2.copyDirectoryContent(clickstackDir.resolve("resources/jetty-home"), jettyHome);
-
-
-        Path targetLibDir = Files.createDirectories(jettyHome.resolve("lib/ext"));
+        Path targetLibDir = Files.createDirectories(jettyBase.resolve("lib/ext"));
         Files2.copyDirectoryContent(clickstackDir.resolve("deps/jetty-lib"),targetLibDir );
 
         // JDBC Drivers
@@ -227,25 +232,45 @@ public class Setup {
         Files2.chmodReadOnly(jettyHome);
     }
 
-    public Path installApplication() throws IOException {
-        logger.debug("installApplication() {}", jettyHome);
+    public Path installJettyBase() throws IOException {
+        logger.debug("installJettyBase() {}", jettyBase);
 
-        Path rootWebAppDir = Files.createDirectories(jettyHome.resolve("webapps"));
+        Path rootWebAppDir = Files.createDirectories(jettyBase.resolve("webapps"));
         Files2.copyToDirectory(warFile, rootWebAppDir);
 
         ApplicationUtils.extractApplicationExtraFiles(warFile, appDir);
         ApplicationUtils.extractContainerExtraLibs(warFile, Files.createDirectories(jettyHome.resolve("lib/ext")));
 
-        Files2.chmodAddReadWrite(jettyHome);
+        Path webAppBundledContextXmlFile = rootWebAppDir.resolve("META-INF/app.xml");
+        Path JettyBaseContextXml = this.jettyBase.resolve("webapps/app.xml");
+        if (Files.exists(webAppBundledContextXmlFile) && !Files.isDirectory(webAppBundledContextXmlFile)) {
+            logger.info("Copy application provided context.xml");
+            Files.move(JettyBaseContextXml, jettyBase.resolve("webapps/app-initial.xml"));
+            Files.copy(webAppBundledContextXmlFile, JettyBaseContextXml);
+        }
 
-        return jettyHome;
+        Path webAppBundledExtraFiles = rootWebAppDir.resolve("META-INF/extra-files");
+        if (Files.exists(webAppBundledExtraFiles) && Files.isDirectory(webAppBundledExtraFiles)) {
+            logger.info("Copy application provided extra files");
+            Files2.copyDirectoryContent(webAppBundledExtraFiles, this.appExtraFilesDir);
+        }
+
+        Path webAppBundledExtraLibs = rootWebAppDir.resolve("META-INF/lib");
+        if (Files.exists(webAppBundledExtraLibs) && Files.isDirectory(webAppBundledExtraLibs)) {
+            logger.info("Copy application provided extra libs");
+            Files2.copyDirectoryContent(webAppBundledExtraLibs, this.jettyBase.resolve("lib/ext"));
+        }
+
+        Files2.chmodAddReadWrite(jettyBase);
+
+        return jettyBase;
     }
 
     public void installJmxTransAgent() throws IOException {
         logger.debug("installJmxTransAgent() {}", agentLibDir);
 
         Path jmxtransAgentJarFile = Files2.copyArtifactToDirectory(clickstackDir.resolve("deps/javaagent-lib"), "jmxtrans-agent", agentLibDir);
-        Path jmxtransAgentConfigurationFile = jettyHome.resolve("jetty-metrics.xml");
+        Path jmxtransAgentConfigurationFile = jettyBase.resolve("jetty-metrics.xml");
         Preconditions.checkState(Files.exists(jmxtransAgentConfigurationFile), "File %s does not exist", jmxtransAgentConfigurationFile);
         Path jmxtransAgentDataFile = logDir.resolve("jetty-metrics.data");
 
@@ -294,6 +319,7 @@ public class Setup {
         writer.println("app_tmp=\"" + appDir.resolve("tmp") + "\"");
         writer.println("log_dir=\"" + logDir + "\"");
         writer.println("jetty_home=\"" + jettyHome + "\"");
+        writer.println("jetty_base=\"" + jettyBase + "\"");
 
         writer.println("port=" + env.appPort);
 

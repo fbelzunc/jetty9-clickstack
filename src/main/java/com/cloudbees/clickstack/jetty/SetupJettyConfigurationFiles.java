@@ -158,13 +158,13 @@ public class SetupJettyConfigurationFiles {
         addXForwardedForSupport(jettyXmlDocument);
     }
 
-    public void buildJettyConfiguration(@Nonnull Path jettyHome) throws Exception {
+    public void buildJettyConfiguration(@Nonnull Path jettyBase) throws Exception {
 
-        Path jettyXmlFile = jettyHome.resolve("etc/jetty.xml");
+        Path jettyXmlFile = jettyBase.resolve("etc/jetty.xml");
         Document jettyXmlDocument = XmlUtils.loadXmlDocumentFromPath(jettyXmlFile);
         XmlUtils.checkRootElement(jettyXmlDocument, "Configure");
 
-        Path appXmlFile = jettyHome.resolve("webapps/app.xml");
+        Path appXmlFile = jettyBase.resolve("webapps/app.xml");
 
         Document appXmlDocument = XmlUtils.loadXmlDocumentFromPath(appXmlFile);
         XmlUtils.checkRootElement(appXmlDocument, "Configure");
